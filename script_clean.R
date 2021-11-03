@@ -99,6 +99,6 @@ bias2<-factor(bia
 county_shapefile_joined<-factor(county_shapefile_joined$bias, levels=c("TRUE", "FALSE", "NA"))
 st_as_sf(county_shapefile_joined)
 
-
+test
 
 

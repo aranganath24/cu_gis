@@ -1,8 +1,6 @@
 library(tidyverse)
-library(tidycensus)
 library(sf)
 library(tmap)
-census_api_key("7d3ec56a20c9f554972004e88aceb135e9d422e0")
 
 # Load and View Data
 co_stops<-read_csv("/Users/adra7980/Documents/CU_workshops/gis/co_statewide_2020_04_01.csv")

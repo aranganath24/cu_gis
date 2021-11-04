@@ -2,8 +2,13 @@
 title: "Introduction to Geographic Information Systems (Applied Example)"
 author: "Aditya Ranganath"
 date: "11/3/2021"
-output: html_document
+output: 
+  html_document:
+        toc: true
+        toc_depth: 3
+        toc_float: true
 ---
+# Introduction 
 
 ```{r, echo=FALSE, message=FALSE, warning=FALSE}
 library(tmap)
@@ -78,6 +83,146 @@ View(co_county_summary)
 kable(co_county_summary)
 ```
 
+Note that the three previous code chunks could have been combined as follows:
+
+```{r, eval=FALSE}
+co_county_summary<-co_stops_2015 %>% 
+                    group_by(county_name) %>% 
+                    count(subject_race) %>% 
+                    spread(subject_race, n) %>%
+                    rowwise() %>% 
+                    mutate(total_stops=sum(c_across(where(is.integer)), na.rm=TRUE)) 
+```
+
+
+```{r}
+# Make a new dataset based on "co_county_summary" that selects only the "county_name", "black", and "total_stops" variables, then renames "black" as "black_stops" (to avoid confusion with census measures), and then deletes the record in which "county_name" is "NA"
+co_county_summary_black_stops<-co_county_summary %>% select(county_name, black, total_stops) %>% 
+                                                     rename(black_stops=black) %>% 
+                                                     filter(county_name!="NA")
+
+View(co_county_summary_black_stops)
+```
+
+```{r, echo=FALSE}
+kable(co_county_summary_black_stops)
+```
+
+```{r, echo=-1}
+setwd("~/Documents/CU_workshops/gis/data")
+# Read in census data
+co_counties_census<-read_csv("co_county_census.csv") 
+View(co_counties_census)
+```
+
+```{r, echo=FALSE}
+kable(co_counties_census)
+```
+
+```{r}
+# Join # Join traffic stops dataset and census dataset
+co_counties_census_trafficstops<-full_join(co_county_summary_black_stops, co_counties_census,
+                                           by=c("county_name"="County"))
+
+View(co_counties_census_trafficstops)
+```
+
+```{r, echo=FALSE}
+kable(co_counties_census_trafficstops, n=3)
+```
+
+```{r}
+# Make new variables and define "excess_stops_index"
+
+co_counties_census_trafficstops<-co_counties_census_trafficstops %>% 
+                                  mutate(black_stop_pct=((black_stops/total_stops)*100),
+                                         black_pop_pct=((total_black_pop_over17/total_pop_over17)*100),
+                                         excess_stops_index=black_stop_pct-black_pop_pct)
+
+View(co_counties_census_trafficstops)
+```
+
+```{r, echo=FALSE}
+kable(co_counties_census_trafficstops, n=3)
+```
+
+```{r, echo=-1}
+setwd("/Users/adra7980/Documents/CU_workshops/gis/data/tl_2019_08_county")
+# Read in shapefile
+co_counties_shapefile<-st_read("tl_2019_08_county.shp")
+co_counties_shapefile
+```
+
+```{r, fig.asp=0.5}
+tm_shape(co_counties_shapefile)+
+  tm_polygons()
+```
+
+
+```{r, fig.asp=0.5}
+tm_shape(co_counties_shapefile)+
+  tm_polygons()+
+  tm_layout(frame=FALSE)
+```
+
+
+```{r}
+# join tabular dataset to shapefile
+county_shapefile_joined<-full_join(co_counties_shapefile, co_counties_census_trafficstops, 
+                                   by=c("NAMELSAD"="county_name"))
+```
+ 
+# Make Maps 
+
+```{r, fig.asp=0.5}
+traffic_map_race<-tm_shape(county_shapefile_joined)+
+                  tm_polygons(col="excess_stops_index", 
+                              palette="YlOrRd", 
+                              textNA="No Data", 
+                              n=4, 
+                              style="jenks")+
+                  tm_layout(frame=FALSE, 
+                            legend.outside=TRUE)
+
+traffic_map_race
+```
+
+Custom breaks
+
+```{r, fig.asp=0.5, warning=FALSE, message=FALSE}
+my_colors<-c("white", "peachpuff", "red1", "red4")
+traffic_map_race<-tm_shape(county_shapefile_joined)+
+                  tm_polygons(col="excess_stops_index", 
+                              palette=my_colors, 
+                              textNA="No Data", 
+                              n=4, 
+                              breaks=c(-10,-5, 0, 2.5, 5))+
+                  tm_layout(frame=FALSE, 
+                            legend.outside=TRUE)
+
+traffic_map_race
+```
+
+
+categorical map
+```{r, fig.asp=0.5}
+Labels<-c("No Apparent Bias", "Apparent Bias")
+categorical_map<-tm_shape(county_shapefile_joined)+
+                    tm_polygons(col="excess_stops_index", title="", pal=c("white", "orangered1"), labels=Labels, breaks=c(-10, 0,10), textNA="No Data")+
+                    tm_layout(legend.outside=TRUE, 
+                              main.title="Disproportionate Traffice Stops of Black Drivers in Colorado, by County\n(Using Black Share of Over-17 County Population Share as Baseline) ",
+                              main.title.size=1,
+                              main.title.position="left",
+                              frame=FALSE, 
+                              legend.outside.position = "right", 
+                              attr.outside=TRUE)+
+                    tm_text("NAME", size=0.38)+
+                    tm_credits("Map Author: Aditya Ranganath\nData Sources: 2015 ACS, Stanford Open Policing Project ", # Sets text for map credits
+                    position=c(0,0), # Specifies location of map credits
+                    size=0.38)    
+
+categorical_map
+```
 
 
 

@@ -1,0 +1,86 @@
+---
+title: "Introduction to Geographic Information Systems (Applied Example)"
+author: "Aditya Ranganath"
+date: "11/3/2021"
+output: html_document
+---
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(tmap)
+library(sf)
+library(tidyverse)
+library(knitr)
+```
+
+```{r, eval=FALSE}
+library(tmap)
+library(sf)
+library(tidyverse)
+```
+
+```{r, echo=c(-1,-4), cache=TRUE, message=FALSE}
+setwd("/Users/adra7980/Documents/CU_workshops/gis")
+co_stops<-read_csv("co_statewide_2020_04_01.csv")
+View(co_stops)
+kable(head(co_stops,n=3))
+```
+
+```{r}
+# Create new dataset of 2015 observations
+
+# Generate "Year" field based on existing "date" field
+co_stops<-co_stops %>% mutate(Year=substr(co_stops$date, 1,4))
+
+# Generate 2015 dataset by filtering operation to select 2015 observations
+co_stops_2015<-co_stops %>% filter(Year==2015)
+```
+
+```{r}
+# Compute county-level count of traffic stops by race
+
+co_county_summary<-co_stops_2015 %>% 
+                    group_by(county_name) %>% 
+                    count(subject_race) 
+
+View(co_county_summary)
+```
+
+```{r, echo=FALSE}
+kable(head(co_county_summary))
+```
+
+
+```{r}
+# Reshape "co_county_summary" to make racial categories into separate fields
+co_county_summary<-co_county_summary %>% 
+                      spread(subject_race, n)
+
+View(co_county_summary)
+```
+
+```{r, echo=FALSE}
+co_county_summary<-co_county_summary %>% rename("NA"="<NA>")
+```
+
+```{r, echo=FALSE}
+kable(co_county_summary)
+```
+
+```{r}
+# Generate field containing information on total number of stops
+co_county_summary<-co_county_summary %>% rowwise() %>% 
+                                         mutate(total_stops=sum(c_across(where(is.integer)), na.rm=TRUE)) 
+
+View(co_county_summary)
+```
+
+```{r, echo=FALSE}
+kable(co_county_summary)
+```
+
+
+
+
+
+
+

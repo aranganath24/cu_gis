@@ -3,7 +3,6 @@ library(sf)
 library(tmap)
 
 # Load and View Data
-co_stops<-read_csv("/Users/adra7980/Documents/CU_workshops/gis/co_statewide_2020_04_01.csv")
 View(co_stops)
 
 # Generate Year variable
@@ -76,29 +75,29 @@ policing_map<-tm_shape(county_shapefile_joined)+
 
 # Categorical variables map
 
-bias<-county_shapefile_joined$excess_stops_index>0
+# Make new categorical variable
+county_shapefile_joined<-county_shapefile_joined %>% 
+  mutate(apparent_bias=ifelse(excess_stops_index>0, "Apparent Bias", "No Apparent Bias"))
 
-county_shapefile_joined<-cbind(county_shapefile_joined, bias)
-        
-tm_shape(county_shapefile_joined)+
-  tm_polygons(col="bias", style="cat", pal=c("white", "skyblue"))
+# Map based on categorical variable 
 
-tm_shape(county_shapefile_joined)+
-  tm_polygons(col="bias", pal=c("white", "skyblue"))
+categorical_map<-tm_shape(county_shapefile_joined)+
+                    tm_polygons(col="apparent_bias", title="", pal=c("orangered1", "white"), textNA="No Data")+
+                    tm_layout(legend.outside=TRUE, 
+                              main.title="Disproportionate Traffice Stops of Black Drivers in Colorado, by County\n(Using Black Share of Over-17 County Population Share as Baseline) ",
+                              main.title.size=1,
+                              main.title.position="left",
+                              frame=FALSE, 
+                              legend.outside.position = "right", 
+                              attr.outside=TRUE)+
+                    tm_text("NAME", size=0.38)+
+                    tm_credits("Map Author: Aditya Ranganath\nData Sources: 2015 ACS, Stanford Open Policing Project ", # Sets text for map credits
+                    position=c(0,0), # Specifies location of map credits
+                    size=0.38)    
 
-# Removes legend title 
-tm_shape(county_shapefile_joined)+
-  tm_polygons(col="bias", title="", pal=c("white", "skyblue"))
+# switch to view mode
+tmap_mode("view")
 
-# change legend order 
-
-bias2<-county_shapefile_joined$excess_stops_index>0
-
-bias2<-factor(bia
-
-county_shapefile_joined<-factor(county_shapefile_joined$bias, levels=c("TRUE", "FALSE", "NA"))
-st_as_sf(county_shapefile_joined)
-
-test
-
+# view interactive map
+categorical_map 
 

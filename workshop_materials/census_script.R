@@ -2,7 +2,7 @@
 
 library(tidyverse)
 library(tidycensus)
-census_api_key("7d3ec56a20c9f554972004e88aceb135e9d422e0")
+census_api_key("API KEY HERE")
 
 # Variable List for 2015 ACS
 

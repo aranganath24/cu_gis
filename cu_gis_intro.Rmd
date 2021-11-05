@@ -199,7 +199,6 @@ traffic_map_race<-tm_shape(county_shapefile_joined)+
                               breaks=c(-10,-5, 0, 2.5, 5))+
                   tm_layout(frame=FALSE, 
                             legend.outside=TRUE)
-
 traffic_map_race
 ```
 
@@ -226,6 +225,8 @@ categorical_map
 
 
 
-
+```{r, fig.cap="TEST", fig.asp=0.5, echo=-1, out.width='100%'}
+knitr::include_graphics("images/testimage.png")
+```
 
 

@@ -97,6 +97,11 @@ co_counties_race<-co_counties_race %>% mutate(total_black_pop_over17=black_total
 co_counties_race_final<-co_counties_race %>% select(GEOID, County, total_pop, total_black_pop_over17, 
                                               total_pop_over17)
 
+
+# Write to disk
+
+write_csv(co_counties_race_final, "co_county_decennial_census.csv")
+
            
            
            
